@@ -65,6 +65,9 @@ const BlogCard: React.FC<BlogCardProps> = ({
   const [docError, setDocError] = useState(false);
   const { user } = useAuth(); // Get auth state
 
+  // Inline tiny transparent GIF as a guaranteed fallback
+  const FALLBACK_IMG = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
+
   // Handle image source extraction
   useEffect(() => {
     if (!blog.image) {
@@ -73,7 +76,10 @@ const BlogCard: React.FC<BlogCardProps> = ({
     }
 
     if (typeof blog.image === 'string') {
-      setImageSrc(blog.image);
+      const src = blog.image;
+      // Avoid mixed-content in production
+      const normalized = src.startsWith('http://') ? src.replace(/^http:\/\//, 'https://') : src;
+      setImageSrc(normalized);
     } else if ('data' in blog.image) {
       setImageSrc(`data:${blog.image.contentType || 'image/jpeg'};base64,${blog.image.data}`);
     }
@@ -143,18 +149,20 @@ const BlogCard: React.FC<BlogCardProps> = ({
           {imageSrc ? (
             <CardMedia
               component="img"
-              image={imageError ? '/placeholder.jpg' : imageSrc}
-              alt={blog.title}
-              onError={() => setImageError(true)}
-              sx={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-              }}
-            />
+              image={imageError ? FALLBACK_IMG : (imageSrc || FALLBACK_IMG)}
+               alt={blog.title}
+               loading="eager"
+               decoding="sync"
+               onError={() => setImageError(true)}
+               sx={{
+                 position: 'absolute',
+                 top: 0,
+                 left: 0,
+                 width: '100%',
+                 height: '100%',
+                 objectFit: 'cover',
+               }}
+             />
           ) : (
             <Box
               sx={{
@@ -169,7 +177,7 @@ const BlogCard: React.FC<BlogCardProps> = ({
                 bgcolor: theme.palette.grey[200],
               }}
             >
-              <ImageIcon sx={{ fontSize: 48, color: theme.palette.grey[400] }} />
+              <img src={FALLBACK_IMG} alt="placeholder" style={{ width: '40%', opacity: 0.5 }} />
             </Box>
           )}
           
@@ -499,11 +507,13 @@ const BlogCard: React.FC<BlogCardProps> = ({
               {imageSrc && (
                 <Box sx={{ mb: 3, borderRadius: 2, overflow: 'hidden' }}>
                   <img 
-                    src={imageError ? '/placeholder.jpg' : imageSrc} 
-                    alt={blog.title}
-                    onError={() => setImageError(true)}
-                    style={{ width: '100%', height: 'auto', display: 'block' }}
-                  />
+                    src={imageError ? FALLBACK_IMG : (imageSrc || FALLBACK_IMG)} 
+                     alt={blog.title}
+                     loading="eager"
+                     decoding="sync"
+                     onError={() => setImageError(true)}
+                     style={{ width: '100%', height: 'auto', display: 'block' }}
+                   />
                 </Box>
               )}
               
