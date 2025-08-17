@@ -29,6 +29,9 @@ const BlogCarousel: React.FC<BlogCarouselProps> = ({ blogs, onView, isAuthentica
   });
   const [docError, setDocError] = useState(false);
 
+  // Inline tiny transparent GIF as a guaranteed fallback
+  const FALLBACK_IMG = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
+
   // Function to get document viewer URL
   const getDocumentViewerUrl = (url: string): string => {
     try {
@@ -87,9 +90,18 @@ const BlogCarousel: React.FC<BlogCarouselProps> = ({ blogs, onView, isAuthentica
 
   const currentBlog = blogs[currentIndex];
   const hasMultipleItems = blogs.length > 1;
-  const imageUrl = typeof currentBlog.image === 'string' 
-    ? currentBlog.image 
-    : currentBlog.image?.data || '';
+  const imageUrl = (() => {
+    if (!currentBlog.image) return '';
+    if (typeof currentBlog.image === 'string') {
+      const src = currentBlog.image;
+      // Avoid mixed-content in production
+      return src.startsWith('http://') ? src.replace(/^http:\/\//, 'https://') : src;
+    }
+    if ('data' in currentBlog.image) {
+      return `data:${currentBlog.image.contentType || 'image/jpeg'};base64,${currentBlog.image.data}`;
+    }
+    return '';
+  })();
 
   return (
     <Box 
@@ -165,8 +177,11 @@ const BlogCarousel: React.FC<BlogCarouselProps> = ({ blogs, onView, isAuthentica
           <Box sx={{ position: 'relative', width: '100%', paddingTop: '56.25%' }}>
             <CardMedia
               component="img"
-              image={imageUrl}
+              image={imageUrl || FALLBACK_IMG}
               alt={currentBlog.title}
+              loading="eager"
+              decoding="sync"
+              onError={(e: any) => { e.currentTarget.src = FALLBACK_IMG; }}
               sx={{
                 position: 'absolute',
                 top: 0,
@@ -346,8 +361,11 @@ const BlogCarousel: React.FC<BlogCarouselProps> = ({ blogs, onView, isAuthentica
               {imageUrl && (
                 <Box sx={{ mb: 3, borderRadius: 2, overflow: 'hidden' }}>
                   <img 
-                    src={imageUrl}
+                    src={imageUrl || FALLBACK_IMG}
                     alt={openDetail.blog.title}
+                    loading="eager"
+                    decoding="sync"
+                    onError={(e: any) => { e.currentTarget.src = FALLBACK_IMG; }}
                     style={{ width: '100%', height: 'auto', display: 'block' }}
                   />
                 </Box>
