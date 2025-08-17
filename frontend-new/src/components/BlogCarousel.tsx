@@ -7,9 +7,15 @@ import {
   Button,
   IconButton,
   Chip,
-  useTheme,
+  useTheme
 } from '@mui/material';
-import { ChevronLeft, ChevronRight, ArrowForward, Delete as DeleteIcon, OpenInNew as OpenInNewIcon } from '@mui/icons-material';
+import {
+  ChevronLeft,
+  ChevronRight,
+  ArrowForward,
+  Delete as DeleteIcon,
+  OpenInNew as OpenInNewIcon
+} from '@mui/icons-material';
 import { Blog } from '../types';
 import { format } from 'date-fns';
 
@@ -19,33 +25,36 @@ interface BlogCarouselProps {
   isAuthenticated?: boolean;
 }
 
-const BlogCarousel: React.FC<BlogCarouselProps> = ({ blogs, onView, isAuthenticated = false }) => {
+const BlogCarousel: React.FC<BlogCarouselProps> = ({
+  blogs,
+  onView,
+  isAuthenticated = false
+}) => {
   const theme = useTheme();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
-  const [openDetail, setOpenDetail] = useState<{ open: boolean; blog: Blog | null }>({ 
-    open: false, 
-    blog: null 
+  const [openDetail, setOpenDetail] = useState<{
+    open: boolean;
+    blog: Blog | null;
+  }>({
+    open: false,
+    blog: null
   });
   const [docError, setDocError] = useState(false);
 
-  // Inline tiny transparent GIF as a guaranteed fallback
-  const FALLBACK_IMG = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
+  // Inline tiny transparent GIF as a guaranteed fallback (invisible)
+  const FALLBACK_IMG =
+    'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
 
-  // Function to get document viewer URL
   const getDocumentViewerUrl = (url: string): string => {
     try {
-      // Extract file ID from URL
       const fileIdMatch = url.match(/[\w-]{25,}/);
       const fileId = fileIdMatch ? fileIdMatch[0] : '';
-      
-      if (!fileId) return url; // Return original URL if no file ID found
-      
-      // Return Google Drive viewer URL with file ID
+      if (!fileId) return url;
       return `https://drive.google.com/file/d/${fileId}/preview`;
     } catch (error) {
       console.error('Error generating document viewer URL:', error);
-      return url; // Fallback to original URL if there's an error
+      return url;
     }
   };
 
@@ -68,13 +77,14 @@ const BlogCarousel: React.FC<BlogCarouselProps> = ({ blogs, onView, isAuthentica
     setCurrentIndex((prevIndex) => (prevIndex - 1 + blogs.length) % blogs.length);
   }, [blogs.length]);
 
-  const handleOpenDetail = useCallback((blog: Blog) => (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (onView) {
-      onView(blog);
-    }
-    setOpenDetail({ open: true, blog });
-  }, [onView]);
+  const handleOpenDetail = useCallback(
+    (blog: Blog) => (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (onView) onView(blog);
+      setOpenDetail({ open: true, blog });
+    },
+    [onView]
+  );
 
   const handleCloseDetail = useCallback(() => {
     setOpenDetail({ open: false, blog: null });
@@ -94,34 +104,40 @@ const BlogCarousel: React.FC<BlogCarouselProps> = ({ blogs, onView, isAuthentica
     if (!currentBlog.image) return '';
     if (typeof currentBlog.image === 'string') {
       const src = currentBlog.image;
-      // Avoid mixed-content in production
-      return src.startsWith('http://') ? src.replace(/^http:\/\//, 'https://') : src;
+      return src.startsWith('http://')
+        ? src.replace(/^http:\/\//, 'https://')
+        : src;
     }
     if ('data' in currentBlog.image) {
       const dataUrl = `data:${currentBlog.image.contentType || 'image/jpeg'};base64,${currentBlog.image.data}`;
       try {
-        const byteLength = typeof currentBlog.image.data === 'string' ? currentBlog.image.data.length : 0;
+        const byteLength =
+          typeof currentBlog.image.data === 'string'
+            ? currentBlog.image.data.length
+            : 0;
         console.log('[BlogCarousel] MongoDB image detected and prepared', {
           title: currentBlog.title,
           contentType: currentBlog.image.contentType || 'image/jpeg',
-          base64Length: byteLength,
+          base64Length: byteLength
         });
-      } catch {}
+      } catch {
+        // no-op
+      }
       return dataUrl;
     }
     return '';
   })();
 
   return (
-    <Box 
-      sx={{ 
+    <Box
+      sx={{
         position: 'relative',
         width: '100%',
         maxWidth: '1400px',
         mx: 'auto',
         '&:hover .carousel-arrow': {
-          opacity: 1,
-        },
+          opacity: 1
+        }
       }}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
@@ -147,8 +163,8 @@ const BlogCarousel: React.FC<BlogCarouselProps> = ({ blogs, onView, isAuthentica
               zIndex: 2,
               '&:hover': {
                 backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                opacity: 1,
-              },
+                opacity: 1
+              }
             }}
           >
             <ChevronLeft fontSize="large" />
@@ -171,8 +187,8 @@ const BlogCarousel: React.FC<BlogCarouselProps> = ({ blogs, onView, isAuthentica
               zIndex: 2,
               '&:hover': {
                 backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                opacity: 1,
-              },
+                opacity: 1
+              }
             }}
           >
             <ChevronRight fontSize="large" />
@@ -181,7 +197,14 @@ const BlogCarousel: React.FC<BlogCarouselProps> = ({ blogs, onView, isAuthentica
       )}
 
       {/* Carousel Item */}
-      <Box sx={{ position: 'relative', width: '100%', borderRadius: 2, overflow: 'hidden' }}>
+      <Box
+        sx={{
+          position: 'relative',
+          width: '100%',
+          borderRadius: 2,
+          overflow: 'hidden'
+        }}
+      >
         <Card sx={{ boxShadow: 'none', borderRadius: 0 }}>
           <Box sx={{ position: 'relative', width: '100%', paddingTop: '56.25%' }}>
             <CardMedia
@@ -191,17 +214,23 @@ const BlogCarousel: React.FC<BlogCarouselProps> = ({ blogs, onView, isAuthentica
               loading="eager"
               decoding="sync"
               onLoad={(e: any) => {
-                const src: string = e?.currentTarget?.currentSrc || '';
-                console.log('[BlogCarousel] Image rendered', { title: currentBlog.title, src: src.slice(0, 64) + (src.length > 64 ? '…' : '') });
+                const src: string = e?.currentTarget?.currentSrc || imageUrl || '';
+                console.log('[BlogCarousel] Image rendered', {
+                  title: currentBlog.title,
+                  src:
+                    src.slice(0, 64) + (src.length > 64 ? '…' : '')
+                });
               }}
-              onError={(e: any) => { e.currentTarget.src = FALLBACK_IMG; }}
+              onError={(e: any) => {
+                e.currentTarget.src = FALLBACK_IMG;
+              }}
               sx={{
                 position: 'absolute',
                 top: 0,
                 left: 0,
                 width: '100%',
                 height: '100%',
-                objectFit: 'cover',
+                objectFit: 'cover'
               }}
             />
             <Box
@@ -210,9 +239,10 @@ const BlogCarousel: React.FC<BlogCarouselProps> = ({ blogs, onView, isAuthentica
                 bottom: 0,
                 left: 0,
                 right: 0,
-                background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%)',
+                background:
+                  'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%)',
                 color: 'white',
-                p: 3,
+                p: 3
               }}
             >
               <Typography variant="h5" component="h2" sx={{ mb: 1, fontWeight: 'bold' }}>
@@ -226,9 +256,9 @@ const BlogCarousel: React.FC<BlogCarouselProps> = ({ blogs, onView, isAuthentica
                 sx={{
                   marginTop: 1,
                   backgroundColor: theme.palette.primary.main,
-                  '&:hover': { 
-                    backgroundColor: theme.palette.primary.dark 
-                  },
+                  '&:hover': {
+                    backgroundColor: theme.palette.primary.dark
+                  }
                 }}
               >
                 Read More
@@ -249,17 +279,18 @@ const BlogCarousel: React.FC<BlogCarouselProps> = ({ blogs, onView, isAuthentica
                 width: 10,
                 height: 10,
                 borderRadius: '50%',
-                bgcolor: currentIndex === index ? 'primary.main' : 'action.disabled',
+                bgcolor:
+                  currentIndex === index ? 'primary.main' : 'action.disabled',
                 cursor: 'pointer',
                 transition: 'background-color 0.3s',
-                '&:hover': { bgcolor: 'primary.dark' },
+                '&:hover': { bgcolor: 'primary.dark' }
               }}
             />
           ))}
         </Box>
       )}
 
-      {/* Blog Detail Modal - Matching BlogCard's implementation */}
+      {/* Blog Detail Modal */}
       {openDetail.open && openDetail.blog && (
         <Box
           sx={{
@@ -294,7 +325,7 @@ const BlogCarousel: React.FC<BlogCarouselProps> = ({ blogs, onView, isAuthentica
               position: 'relative',
               '& .MuiBox-root': {
                 maxWidth: '100%',
-                padding: 3,
+                padding: 3
               },
               '& iframe': {
                 width: '100%',
@@ -304,8 +335,8 @@ const BlogCarousel: React.FC<BlogCarouselProps> = ({ blogs, onView, isAuthentica
               },
               '& .MuiTypography-h4': {
                 fontSize: '2rem',
-                marginBottom: '1.5rem',
-              },
+                marginBottom: '1.5rem'
+              }
             }}
           >
             <IconButton
@@ -317,114 +348,131 @@ const BlogCarousel: React.FC<BlogCarouselProps> = ({ blogs, onView, isAuthentica
                 zIndex: 1,
                 backgroundColor: 'rgba(0,0,0,0.1)',
                 '&:hover': {
-                  backgroundColor: 'rgba(0,0,0,0.2)',
-                },
+                  backgroundColor: 'rgba(0,0,0,0.2)'
+                }
               }}
             >
               <DeleteIcon />
             </IconButton>
-            
-            <Box sx={{ 
-              p: 4, 
-              overflowY: 'auto',
-              flex: 1,
-              '&::-webkit-scrollbar': {
-                width: '8px',
-              },
-              '&::-webkit-scrollbar-track': {
-                background: theme.palette.grey[100],
-                borderRadius: '4px',
-              },
-              '&::-webkit-scrollbar-thumb': {
-                background: theme.palette.grey[400],
-                borderRadius: '4px',
-                '&:hover': {
-                  background: theme.palette.grey[500],
+
+            <Box
+              sx={{
+                p: 4,
+                overflowY: 'auto',
+                flex: 1,
+                '&::-webkit-scrollbar': {
+                  width: '8px'
                 },
-              },
-            }}>
+                '&::-webkit-scrollbar-track': {
+                  background: theme.palette.grey[100],
+                  borderRadius: '4px'
+                },
+                '&::-webkit-scrollbar-thumb': {
+                  background: theme.palette.grey[400],
+                  borderRadius: '4px',
+                  '&:hover': {
+                    background: theme.palette.grey[500]
+                  }
+                }
+              }}
+            >
               <Typography variant="h4" component="h1" gutterBottom>
                 {openDetail.blog.title}
               </Typography>
-              
+
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
                 {openDetail.blog.author && (
-                  <Chip 
+                  <Chip
                     label={`By ${openDetail.blog.author.name || 'Unknown Author'}`}
                     size="small"
-                    sx={{ 
+                    sx={{
                       backgroundColor: theme.palette.primary.light,
                       color: 'white',
-                      fontWeight: 500,
+                      fontWeight: 500
                     }}
                   />
                 )}
-                
+
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                   <Typography variant="body2" color="textSecondary">
-                    {openDetail.blog.createdAt && 
+                    {openDetail.blog.createdAt &&
                       format(new Date(openDetail.blog.createdAt), 'MMMM d, yyyy')}
-                    {openDetail.blog.updatedAt && openDetail.blog.updatedAt !== openDetail.blog.createdAt && (
-                      <span> • Updated {format(new Date(openDetail.blog.updatedAt), 'MMMM d, yyyy')}</span>
-                    )}
+                    {openDetail.blog.updatedAt &&
+                      openDetail.blog.updatedAt !== openDetail.blog.createdAt && (
+                        <span>
+                          {' '}
+                          - Updated{' '}
+                          {format(
+                            new Date(openDetail.blog.updatedAt),
+                            'MMMM d, yyyy'
+                          )}
+                        </span>
+                      )}
                   </Typography>
                 </Box>
               </Box>
-              
+
               {imageUrl && (
                 <Box sx={{ mb: 3, borderRadius: 2, overflow: 'hidden' }}>
-                  <img 
+                  <img
                     src={imageUrl || FALLBACK_IMG}
                     alt={openDetail.blog.title}
                     loading="eager"
                     decoding="sync"
                     onLoad={(e: any) => {
-                      const src: string = e?.currentTarget?.currentSrc || '';
-                      console.log('[BlogCarousel Modal] Image rendered', { title: openDetail.blog?.title, src: src.slice(0, 64) + (src.length > 64 ? '…' : '') });
+                      const src: string =
+                        e?.currentTarget?.currentSrc || imageUrl || '';
+                      console.log('[BlogCarousel Modal] Image rendered', {
+                        title: openDetail.blog?.title,
+                        src:
+                          src.slice(0, 64) + (src.length > 64 ? '…' : '')
+                      });
                     }}
-                    onError={(e: any) => { e.currentTarget.src = FALLBACK_IMG; }}
+                    onError={(e: any) => {
+                      e.currentTarget.src = FALLBACK_IMG;
+                    }}
                     style={{ width: '100%', height: 'auto', display: 'block' }}
                   />
                 </Box>
               )}
-              
+
               {/* Document Viewer - Show to all users */}
               {openDetail.blog.googleDriveLink && (
                 <Box sx={{ width: '100%', height: '70vh', mt: 2, position: 'relative' }}>
-                  <Box sx={{ 
-                    width: '100%', 
-                    height: '100%',
-                    bgcolor: 'background.paper',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}>
+                  <Box
+                    sx={{
+                      width: '100%',
+                      height: '100%',
+                      bgcolor: 'background.paper',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
                     <iframe
                       src={getDocumentViewerUrl(openDetail.blog.googleDriveLink)}
                       width="100%"
                       height="100%"
-                      style={{ 
-                        border: 'none',
-                        flexGrow: 1,
-                        minHeight: 0 // Allows iframe to shrink below its content size
-                      }}
+                      style={{ border: 'none', flexGrow: 1, minHeight: 0 }}
                       title="Document Viewer"
                       allow="autoplay"
                       onError={() => setDocError(true)}
                     />
-                    <Box sx={{ 
-                      width: '100%', 
-                      p: 2, 
-                      bgcolor: 'background.paper',
-                      borderTop: '1px solid',
-                      borderColor: 'divider',
-                      display: 'flex',
-                      justifyContent: 'center',
-                      gap: 2
-                    }}>
-                      <Button 
-                        variant="outlined" 
+                    <Box
+                      sx={{
+                        width: '100%',
+                        p: 2,
+                        bgcolor: 'background.paper',
+                        borderTop: '1px solid',
+                        borderColor: 'divider',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        gap: 2
+                      }}
+                    >
+                      <Button
+                        variant="outlined"
                         href={openDetail.blog.googleDriveLink}
                         target="_blank"
                         startIcon={<OpenInNewIcon />}
@@ -433,64 +481,36 @@ const BlogCarousel: React.FC<BlogCarouselProps> = ({ blogs, onView, isAuthentica
                       </Button>
                     </Box>
                   </Box>
-                  {docError && (
-                    <Box sx={{ 
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      p: 3,
-                      textAlign: 'center',
-                      bgcolor: 'background.paper'
-                    }}>
-                      <Typography color="error" gutterBottom>
-                        Could not load the document. Please try opening it in a new tab.
-                      </Typography>
-                      <Button 
-                        variant="contained" 
-                        color="primary" 
-                        href={openDetail.blog.googleDriveLink}
-                        target="_blank"
-                        sx={{ mt: 2 }}
-                      >
-                        Open in New Tab
-                      </Button>
-                    </Box>
-                  )}
                 </Box>
               )}
-              
+
               {/* Show blog content if no document */}
               {!openDetail.blog.googleDriveLink && (
                 <Box sx={{ mt: 3 }}>
                   <Typography variant="body1" paragraph>
-                    {openDetail.blog.title ? `Viewing: ${openDetail.blog.title}` : 'No additional content available.'}
+                    {openDetail.blog.title
+                      ? `Viewing: ${openDetail.blog.title}`
+                      : 'No additional content available.'}
                   </Typography>
                 </Box>
               )}
 
-              <Box sx={{ 
-                display: 'flex', 
-                gap: 2, 
-                justifyContent: 'flex-end',
-                borderTop: `1px solid ${theme.palette.divider}`,
-                pt: 3,
-                mt: 'auto'
-              }}>
-                <Button 
-                  variant="outlined" 
-                  onClick={handleCloseDetail}
-                >
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: 2,
+                  justifyContent: 'flex-end',
+                  borderTop: `1px solid ${theme.palette.divider}`,
+                  pt: 3,
+                  mt: 'auto'
+                }}
+              >
+                <Button variant="outlined" onClick={handleCloseDetail}>
                   Close
                 </Button>
                 {openDetail.blog.googleDriveLink && (
-                  <Button 
-                    variant="contained" 
+                  <Button
+                    variant="contained"
                     color="primary"
                     href={openDetail.blog.googleDriveLink}
                     target="_blank"
