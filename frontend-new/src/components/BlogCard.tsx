@@ -81,9 +81,21 @@ const BlogCard: React.FC<BlogCardProps> = ({
       const normalized = src.startsWith('http://') ? src.replace(/^http:\/\//, 'https://') : src;
       setImageSrc(normalized);
     } else if ('data' in blog.image) {
-      setImageSrc(`data:${blog.image.contentType || 'image/jpeg'};base64,${blog.image.data}`);
+      const dataUrl = `data:${blog.image.contentType || 'image/jpeg'};base64,${blog.image.data}`;
+      setImageSrc(dataUrl);
+      // Log detection of MongoDB image payload
+      try {
+        const byteLength = typeof blog.image.data === 'string' ? blog.image.data.length : 0;
+        console.log('[BlogCard] MongoDB image detected and prepared', {
+          title: blog.title,
+          contentType: blog.image.contentType || 'image/jpeg',
+          base64Length: byteLength,
+        });
+      } catch (e) {
+        // no-op
+      }
     }
-  }, [blog.image]);
+  }, [blog.image, blog.title]);
 
   const formatDate = (dateString: string) => {
     try {
@@ -150,19 +162,23 @@ const BlogCard: React.FC<BlogCardProps> = ({
             <CardMedia
               component="img"
               image={imageError ? FALLBACK_IMG : (imageSrc || FALLBACK_IMG)}
-               alt={blog.title}
-               loading="eager"
-               decoding="sync"
-               onError={() => setImageError(true)}
-               sx={{
-                 position: 'absolute',
-                 top: 0,
-                 left: 0,
-                 width: '100%',
-                 height: '100%',
-                 objectFit: 'cover',
-               }}
-             />
+              alt={blog.title}
+              loading="eager"
+              decoding="sync"
+              onLoad={(e: any) => {
+                const src: string = e?.currentTarget?.currentSrc || '';
+                console.log('[BlogCard] Image rendered', { title: blog.title, src: src.slice(0, 64) + (src.length > 64 ? '…' : '') });
+              }}
+              onError={() => setImageError(true)}
+              sx={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+              }}
+            />
           ) : (
             <Box
               sx={{
@@ -508,12 +524,16 @@ const BlogCard: React.FC<BlogCardProps> = ({
                 <Box sx={{ mb: 3, borderRadius: 2, overflow: 'hidden' }}>
                   <img 
                     src={imageError ? FALLBACK_IMG : (imageSrc || FALLBACK_IMG)} 
-                     alt={blog.title}
-                     loading="eager"
-                     decoding="sync"
-                     onError={() => setImageError(true)}
-                     style={{ width: '100%', height: 'auto', display: 'block' }}
-                   />
+                    alt={blog.title}
+                    loading="eager"
+                    decoding="sync"
+                    onLoad={(e: any) => {
+                      const src: string = e?.currentTarget?.currentSrc || '';
+                      console.log('[BlogCard Modal] Image rendered', { title: blog.title, src: src.slice(0, 64) + (src.length > 64 ? '…' : '') });
+                    }}
+                    onError={() => setImageError(true)}
+                    style={{ width: '100%', height: 'auto', display: 'block' }}
+                  />
                 </Box>
               )}
               
