@@ -98,7 +98,16 @@ const BlogCarousel: React.FC<BlogCarouselProps> = ({ blogs, onView, isAuthentica
       return src.startsWith('http://') ? src.replace(/^http:\/\//, 'https://') : src;
     }
     if ('data' in currentBlog.image) {
-      return `data:${currentBlog.image.contentType || 'image/jpeg'};base64,${currentBlog.image.data}`;
+      const dataUrl = `data:${currentBlog.image.contentType || 'image/jpeg'};base64,${currentBlog.image.data}`;
+      try {
+        const byteLength = typeof currentBlog.image.data === 'string' ? currentBlog.image.data.length : 0;
+        console.log('[BlogCarousel] MongoDB image detected and prepared', {
+          title: currentBlog.title,
+          contentType: currentBlog.image.contentType || 'image/jpeg',
+          base64Length: byteLength,
+        });
+      } catch {}
+      return dataUrl;
     }
     return '';
   })();
@@ -181,6 +190,10 @@ const BlogCarousel: React.FC<BlogCarouselProps> = ({ blogs, onView, isAuthentica
               alt={currentBlog.title}
               loading="eager"
               decoding="sync"
+              onLoad={(e: any) => {
+                const src: string = e?.currentTarget?.currentSrc || '';
+                console.log('[BlogCarousel] Image rendered', { title: currentBlog.title, src: src.slice(0, 64) + (src.length > 64 ? '…' : '') });
+              }}
               onError={(e: any) => { e.currentTarget.src = FALLBACK_IMG; }}
               sx={{
                 position: 'absolute',
@@ -365,6 +378,10 @@ const BlogCarousel: React.FC<BlogCarouselProps> = ({ blogs, onView, isAuthentica
                     alt={openDetail.blog.title}
                     loading="eager"
                     decoding="sync"
+                    onLoad={(e: any) => {
+                      const src: string = e?.currentTarget?.currentSrc || '';
+                      console.log('[BlogCarousel Modal] Image rendered', { title: openDetail.blog?.title, src: src.slice(0, 64) + (src.length > 64 ? '…' : '') });
+                    }}
                     onError={(e: any) => { e.currentTarget.src = FALLBACK_IMG; }}
                     style={{ width: '100%', height: 'auto', display: 'block' }}
                   />
