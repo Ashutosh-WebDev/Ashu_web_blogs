@@ -16,7 +16,7 @@ interface BlogResponse {
   title: string;
   googleDriveLink: string;
   image?: {
-    data: string;
+    data: any;
     contentType: string;
     filename?: string;
   } | string;
@@ -44,14 +44,70 @@ const BlogsPage: React.FC = () => {
       try {
         setLoading(true);
         const response = await api.get('/api/blogs');
+        // Debug: inspect raw image shapes (first 1-2 items)
+        try {
+          const sample = (response.data || []).slice(0, 2).map((b: any) => ({
+            title: b?.title,
+            imageType: typeof b?.image,
+            imageKeys: b?.image && typeof b.image === 'object' ? Object.keys(b.image) : [],
+            dataType: b?.image && typeof b.image === 'object' ? typeof b.image.data : undefined,
+            dataIsArray: Array.isArray(b?.image?.data),
+            bufferType: b?.image?.data?.type,
+            nestedDataType: typeof b?.image?.data?.data,
+            nestedDataIsArray: Array.isArray(b?.image?.data?.data),
+            nestedDataLen: typeof b?.image?.data?.data === 'string' ? b.image.data.data.length : (Array.isArray(b?.image?.data?.data) ? b.image.data.data.length : undefined),
+          }));
+          console.log('[fetchBlogs] raw image sample', sample);
+        } catch {}
         const blogsWithId = response.data.map((blog: BlogResponse): Blog => {
           let imageData = '';
+          const img: any = blog.image;
           
-          if (blog.image) {
-            if (typeof blog.image === 'string') {
-              imageData = blog.image;
-            } else if ('data' in blog.image) {
-              imageData = `data:${blog.image.contentType || 'image/jpeg'};base64,${blog.image.data}`;
+          if (img) {
+            if (typeof img === 'string') {
+              // Accept full data URI or http(s) URL
+              imageData = img;
+            } else if (typeof img === 'object') {
+              // Case 1: server already sends base64 string
+              if (typeof img.data === 'string') {
+                imageData = `data:${img.contentType || 'image/jpeg'};base64,${img.data}`;
+              }
+              // Case 1b: nested base64 string e.g. { data: { data: 'base64...' }, contentType }
+              else if (typeof img?.data?.data === 'string') {
+                imageData = `data:${img.contentType || 'image/jpeg'};base64,${img.data.data}`;
+              }
+              // Case 2: Node Buffer-like: { data: { type: 'Buffer', data: number[] } }
+              else if (img?.data?.type === 'Buffer' && Array.isArray(img?.data?.data)) {
+                try {
+                  const byteArray = new Uint8Array(img.data.data as number[]);
+                  const chunkSize = 0x8000;
+                  let binary = '';
+                  for (let i = 0; i < byteArray.length; i += chunkSize) {
+                    const chunk = byteArray.subarray(i, i + chunkSize);
+                    binary += String.fromCharCode.apply(null, Array.from(chunk) as number[]);
+                  }
+                  const base64 = btoa(binary);
+                  imageData = `data:${img.contentType || 'image/jpeg'};base64,${base64}`;
+                } catch (e) {
+                  console.warn('Failed to build data URL from buffer', e);
+                }
+              }
+              // Case 3: plain number[] byte array
+              else if (Array.isArray(img.data) && img.data.every((n: any) => typeof n === 'number')) {
+                try {
+                  const byteArray = new Uint8Array(img.data as number[]);
+                  const chunkSize = 0x8000;
+                  let binary = '';
+                  for (let i = 0; i < byteArray.length; i += chunkSize) {
+                    const chunk = byteArray.subarray(i, i + chunkSize);
+                    binary += String.fromCharCode.apply(null, Array.from(chunk) as number[]);
+                  }
+                  const base64 = btoa(binary);
+                  imageData = `data:${img.contentType || 'image/jpeg'};base64,${base64}`;
+                } catch (e) {
+                  console.warn('Failed to build data URL from byte array', e);
+                }
+              }
             }
           }
           
@@ -67,6 +123,16 @@ const BlogsPage: React.FC = () => {
         });
         
         setBlogs(blogsWithId);
+        console.log(
+          'Blogs image debug:',
+          blogsWithId.map((b: Blog) => ({
+            title: b.title,
+            hasImage:
+              typeof b.image === 'string' && (b.image.startsWith('data:') || b.image.startsWith('http')),
+            prefix: typeof b.image === 'string' ? b.image.slice(0, 16) : '',
+            length: typeof b.image === 'string' ? b.image.length : 0,
+          }))
+        );
       } catch (error) {
         console.error('Error fetching blogs:', error);
         // Error handling removed from public view
