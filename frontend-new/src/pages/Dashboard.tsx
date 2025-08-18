@@ -84,14 +84,7 @@ const getBlogs = async (): Promise<Blog[]> => {
   }
 };
 
-const createBlog = async (data: BlogFormData): Promise<Blog> => {
-  const formData = new FormData();
-  Object.entries(data).forEach(([key, value]) => {
-    if (value !== undefined && value !== null) {
-      formData.append(key, value instanceof File ? value : String(value));
-    }
-  });
-  
+const createBlog = async (formData: FormData): Promise<Blog> => {
   try {
     return await fetchWithAuth('/api/blogs', {
       method: 'POST',
@@ -103,14 +96,7 @@ const createBlog = async (data: BlogFormData): Promise<Blog> => {
   }
 };
 
-const updateBlog = async (id: string, data: BlogFormData): Promise<Blog> => {
-  const formData = new FormData();
-  Object.entries(data).forEach(([key, value]) => {
-    if (value !== undefined && value !== null) {
-      formData.append(key, value instanceof File ? value : String(value));
-    }
-  });
-  
+const updateBlog = async (id: string, formData: FormData): Promise<Blog> => {
   try {
     return await fetchWithAuth(`/api/blogs/${id}`, {
       method: 'PUT',
@@ -183,36 +169,17 @@ const Dashboard: React.FC = () => {
       setFormLoading(true);
       setFormError(null);
       
-      // Extract and validate form data
-      const title = formData.get('title')?.toString().trim() || '';
-      const googleDriveLink = formData.get('googleDriveLink')?.toString().trim() || '';
-      const image = formData.get('image');
-      
-      if (!title || !googleDriveLink) {
-        throw new Error('Title and Google Drive link are required');
-      }
-      
-      // Create a BlogFormData object with proper image handling
-      const blogData: BlogFormData = {
-        title,
-        googleDriveLink,
-        // If we have an image, create a FileList-like object, otherwise use empty string
-        image: image instanceof File ? 
-          createFileListFromFile(image) : 
-          ''
-      };
-      
       if (editingBlog?._id) {
-        // Update existing blog
-        const updatedBlog = await updateBlog(editingBlog._id, blogData);
+        // Update existing blog - send original FormData so files are preserved
+        const updatedBlog = await updateBlog(editingBlog._id, formData);
         setBlogs(prevBlogs => 
           prevBlogs.map(blog => 
             blog._id === editingBlog._id ? updatedBlog : blog
           )
         );
       } else {
-        // Create new blog
-        const newBlog = await createBlog(blogData);
+        // Create new blog - send original FormData so files are preserved
+        const newBlog = await createBlog(formData);
         setBlogs(prevBlogs => [newBlog, ...prevBlogs]);
       }
       
