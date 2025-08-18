@@ -27,6 +27,7 @@ interface BlogResponse {
     name: string;
     email: string;
   };
+  featured?: boolean;
 }
 
 const BlogsPage: React.FC = () => {
@@ -118,7 +119,8 @@ const BlogsPage: React.FC = () => {
             image: imageData,
             createdAt: blog.createdAt,
             updatedAt: blog.updatedAt,
-            author: blog.author
+            author: blog.author,
+            featured: !!blog.featured,
           };
         });
         
@@ -180,11 +182,25 @@ const BlogsPage: React.FC = () => {
             <Typography variant="h5" gutterBottom>
               Featured Posts
             </Typography>
-            <BlogCarousel 
-              blogs={blogs.slice(0, 5)}
-              onView={handleViewBlog}
-              isAuthenticated={isAuthenticated}
-            />
+            {(() => {
+              const featuredBlogs = blogs.filter((b) => b.featured);
+              if (featuredBlogs.length === 0) {
+                return (
+                  <Box sx={{ textAlign: 'center', py: 2 }}>
+                    <Typography variant="body2" color="textSecondary">
+                      No featured posts yet.
+                    </Typography>
+                  </Box>
+                );
+              }
+              return (
+                <BlogCarousel
+                  blogs={featuredBlogs.slice(0, 5)}
+                  onView={handleViewBlog}
+                  isAuthenticated={isAuthenticated}
+                />
+              );
+            })()}
           </Box>
 
           {/* Grid Section */}
