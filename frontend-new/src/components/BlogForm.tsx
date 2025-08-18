@@ -6,6 +6,8 @@ import {
   CircularProgress,
   Typography,
   IconButton,
+  Switch,
+  FormControlLabel,
 } from '@mui/material';
 import { Image as ImageIcon, Close } from '@mui/icons-material';
 import { BlogFormData } from '../types';
@@ -15,6 +17,7 @@ interface BlogFormState {
   title: string;
   googleDriveLink: string;
   image?: File | null;
+  featured: boolean;
 }
 
 interface BlogFormProps {
@@ -99,7 +102,8 @@ const BlogForm: React.FC<BlogFormProps> = ({
   const [formData, setFormData] = useState<BlogFormState>({
     title: '',
     googleDriveLink: '',
-    image: null
+    image: null,
+    featured: false,
   });
   const [imagePreview, setImagePreview] = useState<string>('');
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -111,7 +115,8 @@ const BlogForm: React.FC<BlogFormProps> = ({
       setFormData({
         title: initialData.title || '',
         googleDriveLink: initialData.googleDriveLink || '',
-        image: null
+        image: null,
+        featured: !!initialData.featured,
       });
       // If there's an existing image, show it as a preview
       if (initialData.image) {
@@ -221,6 +226,7 @@ const BlogForm: React.FC<BlogFormProps> = ({
       const formDataToSubmit = new FormData();
       formDataToSubmit.append('title', formData.title);
       formDataToSubmit.append('googleDriveLink', formData.googleDriveLink);
+      formDataToSubmit.append('featured', String(formData.featured));
       
       if (formData.image) {
         formDataToSubmit.append('image', formData.image);
@@ -271,6 +277,17 @@ const BlogForm: React.FC<BlogFormProps> = ({
           'Make sure the document is shared with "Anyone with the link"'
         }
         disabled={loading}
+      />
+
+      <FormControlLabel
+        control={
+          <Switch
+            checked={formData.featured}
+            onChange={(e) => setFormData(prev => ({ ...prev, featured: e.target.checked }))}
+            color="primary"
+          />
+        }
+        label="Mark as Featured"
       />
 
       <Box mt={2} mb={2}>
