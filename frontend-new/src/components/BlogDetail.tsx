@@ -25,6 +25,7 @@ import {
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { Blog } from '../types';
+import { Link as RouterLink } from 'react-router-dom';
 
 // Using Blog interface from types.ts
 
@@ -418,30 +419,51 @@ const BlogDetail: React.FC<BlogDetailProps> = ({ blog, open, onClose, onEdit, on
             </Button>
           )}
         </Box>
-        <Button 
-          variant="contained" 
-          color="primary" 
-          endIcon={<OpenInNewIcon />}
-          href={blog.googleDriveLink} 
-          target="_blank"
-          rel="noopener noreferrer"
-          size="medium"
-          sx={{
-            textTransform: 'none',
-            borderRadius: '8px',
-            px: 2.5,
-            py: 0.9,
-            fontWeight: 500,
-            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-            transition: 'all 0.2s ease',
-            '&:hover': {
-              transform: 'translateY(-1px)',
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-            }
-          }}
-        >
-          Open in Google Docs
-        </Button>
+        <Box sx={{ display: 'flex', gap: 1.5 }}>
+          <Button 
+            variant="outlined" 
+            color="secondary" 
+            endIcon={<OpenInNewIcon />}
+            href={blog.googleDriveLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            size="medium"
+            sx={{
+              textTransform: 'none',
+              borderRadius: '8px',
+              px: 2.5,
+              py: 0.9,
+              fontWeight: 500,
+            }}
+          >
+            Open in Google Docs
+          </Button>
+          <Button 
+            variant="contained" 
+            color="primary" 
+            endIcon={<OpenInNewIcon />}
+            component={RouterLink}
+            to={`/blog/${(blog as any).id || (blog as any)._id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            size="medium"
+            sx={{
+              textTransform: 'none',
+              borderRadius: '8px',
+              px: 2.5,
+              py: 0.9,
+              fontWeight: 500,
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+              transition: 'all 0.2s ease',
+              '&:hover': {
+                transform: 'translateY(-1px)',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+              }
+            }}
+          >
+            Open in New Tab
+          </Button>
+        </Box>
       </DialogActions>
     </Dialog>
   );
