@@ -10,7 +10,7 @@ import {
   CardMedia,
   Chip
 } from '@mui/material';
-import { useAuth } from '../contexts/AuthContext';
+// import { useAuth } from '../contexts/AuthContext';
 import {
   Edit as EditIcon,
   Delete as DeleteIcon,
@@ -20,6 +20,7 @@ import {
   OpenInNew as OpenInNewIcon
 } from '@mui/icons-material';
 import { Blog } from '../types';
+import { Link as RouterLink } from 'react-router-dom';
 
 interface BlogCardProps {
   blog: Blog;
@@ -56,7 +57,6 @@ const BlogCard: React.FC<BlogCardProps> = ({
   const [imageSrc, setImageSrc] = useState<string>('');
   const [imageError, setImageError] = useState(false);
   const [docError, setDocError] = useState(false);
-  const { user } = useAuth();
 
   // Inline tiny transparent GIF as a guaranteed fallback (invisible)
   const FALLBACK_IMG =
@@ -661,6 +661,17 @@ const BlogCard: React.FC<BlogCardProps> = ({
                         variant="outlined"
                         href={blog.googleDriveLink}
                         target="_blank"
+                        rel="noopener noreferrer"
+                        startIcon={<OpenInNewIcon />}
+                      >
+                        Open in Google Docs
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        component={RouterLink}
+                        to={`/blog/${blog.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         startIcon={<OpenInNewIcon />}
                       >
                         Open in New Tab
@@ -691,7 +702,8 @@ const BlogCard: React.FC<BlogCardProps> = ({
                       <Button
                         variant="contained"
                         color="primary"
-                        href={blog.googleDriveLink}
+                        component={RouterLink}
+                        to={`/blog/${blog.id}`}
                         target="_blank"
                         sx={{ mt: 2 }}
                       >
@@ -717,16 +729,29 @@ const BlogCard: React.FC<BlogCardProps> = ({
                   Close
                 </Button>
                 {blog.googleDriveLink && (
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    href={blog.googleDriveLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    startIcon={<OpenInNewIcon />}
-                  >
-                    Open in Google Drive
-                  </Button>
+                  <>
+                    <Button
+                      variant="outlined"
+                      color="secondary"
+                      href={blog.googleDriveLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      startIcon={<OpenInNewIcon />}
+                    >
+                      Open in Google Docs
+                    </Button>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      component={RouterLink}
+                      to={`/blog/${blog.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      startIcon={<OpenInNewIcon />}
+                    >
+                      Open in New Tab
+                    </Button>
+                  </>
                 )}
               </Box>
             </Box>
