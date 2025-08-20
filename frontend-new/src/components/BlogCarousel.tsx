@@ -17,6 +17,7 @@ import {
   OpenInNew as OpenInNewIcon
 } from '@mui/icons-material';
 import { Blog } from '../types';
+import { Link as RouterLink } from 'react-router-dom';
 import { format } from 'date-fns';
 
 interface BlogCarouselProps {
@@ -48,10 +49,11 @@ const BlogCarousel: React.FC<BlogCarouselProps> = ({
 
   const getDocumentViewerUrl = (url: string): string => {
     try {
-      const fileIdMatch = url.match(/[\w-]{25,}/);
-      const fileId = fileIdMatch ? fileIdMatch[0] : '';
-      if (!fileId) return url;
-      return `https://drive.google.com/file/d/${fileId}/preview`;
+      const idMatch = url.match(/[\w-]{25,}/);
+      const docId = idMatch ? idMatch[0] : '';
+      if (!docId) return url;
+      const params = new URLSearchParams({ rm: 'minimal', embedded: 'true', single: 'true' });
+      return `https://docs.google.com/document/d/${docId}/preview?${params.toString()}`;
     } catch (error) {
       console.error('Error generating document viewer URL:', error);
       return url;
@@ -438,12 +440,12 @@ const BlogCarousel: React.FC<BlogCarouselProps> = ({
 
               {/* Document Viewer - Show to all users */}
               {openDetail.blog.googleDriveLink && (
-                <Box sx={{ width: '100%', height: '70vh', mt: 2, position: 'relative' }}>
+                <Box sx={{ width: '100%', height: '70vh', mt: 2, position: 'relative', bgcolor: 'background.paper', borderRadius: 2, boxShadow: 1 }}>
                   <Box
                     sx={{
                       width: '100%',
                       height: '100%',
-                      bgcolor: 'background.paper',
+                      bgcolor: 'transparent',
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
@@ -454,7 +456,7 @@ const BlogCarousel: React.FC<BlogCarouselProps> = ({
                       src={getDocumentViewerUrl(openDetail.blog.googleDriveLink)}
                       width="100%"
                       height="100%"
-                      style={{ border: 'none', flexGrow: 1, minHeight: 0 }}
+                      style={{ border: 'none', flexGrow: 1, minHeight: 0, background: 'transparent' }}
                       title="Document Viewer"
                       allow="autoplay"
                       onError={() => setDocError(true)}
@@ -473,8 +475,10 @@ const BlogCarousel: React.FC<BlogCarouselProps> = ({
                     >
                       <Button
                         variant="outlined"
-                        href={openDetail.blog.googleDriveLink}
+                        component={RouterLink}
+                        to={`/blog/${(openDetail.blog as any).id || (openDetail.blog as any)._id}`}
                         target="_blank"
+                        rel="noopener noreferrer"
                         startIcon={<OpenInNewIcon />}
                       >
                         Open in New Tab
