@@ -9,6 +9,7 @@ import BlogsPage from './pages/BlogsPage';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
+import BlogDetailPage from './pages/BlogDetailPage';
 
 // Create theme
 const theme = createTheme({
@@ -52,6 +53,7 @@ const AppContent: React.FC = () => {
           <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Login />} />
           <Route path="/register" element={user ? <Navigate to="/dashboard" /> : <Register />} />
           <Route path="/" element={<BlogsPage />} />
+          <Route path="/blog/:id" element={<BlogDetailPage />} />
           
           {/* Protected routes */}
           <Route
